@@ -80,11 +80,11 @@ def main():
         help='Playlist specifying which files from source should appear in dest.')
     parser.add_argument('--no-delete', action='store_true',
         help="Don't delete files that shouldn't be in the playlist.")
-    parser.add_argument('--verbose', action='store_const', const=logging.DEBUG,
-        default=logging.INFO, help="Talk about what we're doing.")
+    parser.add_argument('--silent', action='store_const', const=logging.INFO,
+        default=logging.DEBUG, help="Don't write too much.")
     args = parser.parse_args()
 
-    logging.basicConfig(level=args.verbose, format='%(asctime)s %(message)s', datefmt='%x %X')
+    logging.basicConfig(level=args.silent, format='%(asctime)s %(message)s', datefmt='%x %X')
 
     logging.info('Loading playlist.')
 
