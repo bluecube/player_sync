@@ -17,6 +17,9 @@ class Synchronizer:
         self._dest = dest
         
     def negative_sync(self):
+        """
+        Delete files that aren't in the playlist.
+        """
         for (root, dirs, files) in os.walk(self._dest, topdown=False, followlinks=True):
             for f in files:
                 filename = os.path.join(root, f)
@@ -30,6 +33,9 @@ class Synchronizer:
                 os.rmdir(root)
         
     def positive_sync(self):
+        """
+        Ensure that all files in the playlist are on the target path.
+        """
         for relpath in sorted(self._paths.keys()):
             source = os.path.join(self._source, relpath)
             dest = os.path.join(self._dest, relpath)

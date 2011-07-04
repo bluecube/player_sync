@@ -1,0 +1,10 @@
+This is a simple script that synchronizes music
+between a huge database and a player based on a
+playlist.
+
+Deletes files that aren't in the playlist, copies
+files that are in the playlist and have different
+mtime or size. Simple.
+
+In fact there's no reason why this should work only
+with music.
