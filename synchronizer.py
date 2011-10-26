@@ -10,9 +10,7 @@ import argparse
 
 class Synchronizer:
     def __init__(self, paths, source, dest):
-        self._paths = dict(map(
-            lambda x: (os.path.relpath(os.path.abspath(os.path.normpath(x.strip())), source), 0),
-            paths))
+        self._paths = {path: 0 for path in paths}
         self._source = source
         self._dest = dest
         
@@ -88,7 +86,9 @@ def main():
 
     logging.info('Loading playlist.')
 
-    sync = Synchronizer(args.playlist, args.source, args.dest)
+    playlist = (os.path.relpath(os.path.abspath(os.path.normpath(x.strip())), args.source) for x in args.playlist}
+
+    sync = Synchronizer(playlist, args.source, args.dest)
 
     if not args.no_delete:
         logging.info('Deleting unwanted files.')
