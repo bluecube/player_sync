@@ -86,7 +86,7 @@ def main():
 
     logging.info('Loading playlist.')
 
-    playlist = (os.path.relpath(os.path.abspath(os.path.normpath(x.strip())), args.source) for x in args.playlist}
+    playlist = (os.path.relpath(os.path.abspath(os.path.normpath(x.strip())), args.source) for x in args.playlist)
 
     sync = Synchronizer(playlist, args.source, args.dest)
 
