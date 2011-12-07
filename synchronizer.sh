@@ -5,6 +5,6 @@
 
 mount /mnt/player || exit
 scriptpath=$(dirname $(readlink -f $0))
-$scriptpath/synchronizer.py --source /big/music --dest /mnt/player/MUSIC --playlist /var/lib/mpd/playlists/Player.m3u "$@"
+$scriptpath/synchronizer.py --source /big/music --dest /mnt/player/MUSIC --playlist /var/lib/mpd/playlists/Player.m3u --normalize "$@"
 echo "Unmounting."
 umount /mnt/player
