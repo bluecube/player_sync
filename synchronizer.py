@@ -112,7 +112,7 @@ def main():
         logging.info('Deleting unwanted files.')
         sync.negative_sync()
 
-    logging.info('Copying files')
+    logging.info('Copying files.')
     sync.positive_sync()
 
     logging.info('Done.')
