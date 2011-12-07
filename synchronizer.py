@@ -7,10 +7,26 @@ import errno
 import shutil
 import logging
 import argparse
+import re
+import unicodedata
+
+def normalize_name(orig_name):
+    """
+    Remove all weird characters in filename.
+    """
+    name = re.sub("[!@#$%^&*()'\"<>~_ ]+", '_', orig_name)
+    name = name.lower()
+
+    name = ''.join((c for c in unicodedata.normalize('NFD', name) if unicodedata.category(c) != 'Mn'))
+
+    return name
 
 class Synchronizer:
-    def __init__(self, paths, source, dest, dry_run = False):
-        self._paths = {path: 0 for path in paths}
+    def __init__(self, paths, source, dest, dry_run = False, normalize = None):
+        if normalize is None:
+            normalize = lambda x: x
+
+        self._paths = {os.path.join(dest, normalize(x)): os.path.join(source, x) for x in paths}
         self._source = source
         self._dest = dest
 
@@ -24,7 +40,7 @@ class Synchronizer:
             for f in files:
                 filename = os.path.join(root, f)
                 
-                if os.path.relpath(filename, self._dest) not in self._paths:
+                if filename not in self._paths:
                     logging.debug('Removing file "{0}".'.format(filename))
 
                     if not self._dry_run:
@@ -43,13 +59,13 @@ class Synchronizer:
         """
         Ensure that all files in the playlist are on the target path.
         """
-        for relpath in sorted(self._paths.keys()):
-            source = os.path.join(self._source, relpath)
-            dest = os.path.join(self._dest, relpath)
-            self._positive_sync_one(source, dest, relpath)
+        for dest, source in sorted(self._paths.items()):
+            self._positive_sync_one(source, dest)
 
-    def _positive_sync_one(self, source, dest, relpath):
+    def _positive_sync_one(self, source, dest):
         source_stat = os.stat(source)
+
+        relpath = os.path.relpath(source, self._source)
 
         if not stat.S_ISREG(source_stat.st_mode):
             logging.warning('"{0}" is not a regular file.'.format(relpath))
@@ -98,6 +114,8 @@ def main():
         help="Don't do any changes in the target directory.")
     parser.add_argument('--silent', action='store_const', const=logging.INFO,
         default=logging.DEBUG, help="Don't write too much.")
+    parser.add_argument('--normalize', action='store_true',
+        help="Normalize file names.")
     args = parser.parse_args()
 
     logging.basicConfig(level=args.silent, format='%(asctime)s %(message)s', datefmt='%x %X')
@@ -106,7 +124,9 @@ def main():
 
     playlist = (os.path.relpath(os.path.abspath(os.path.normpath(x.strip())), args.source) for x in args.playlist)
 
-    sync = Synchronizer(playlist, args.source, args.dest, dry_run = args.dry_run)
+    sync = Synchronizer(playlist, args.source, args.dest,
+        dry_run = args.dry_run,
+        normalize = normalize_name if args.normalize else None)
 
     if not args.no_delete:
         logging.info('Deleting unwanted files.')
