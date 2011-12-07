@@ -9,11 +9,13 @@ import logging
 import argparse
 
 class Synchronizer:
-    def __init__(self, paths, source, dest):
+    def __init__(self, paths, source, dest, dry_run = False):
         self._paths = {path: 0 for path in paths}
         self._source = source
         self._dest = dest
-        
+
+        self._dry_run = dry_run
+
     def negative_sync(self):
         """
         Delete files that aren't in the playlist.
@@ -24,11 +26,18 @@ class Synchronizer:
                 
                 if os.path.relpath(filename, self._dest) not in self._paths:
                     logging.debug('Removing file "{0}".'.format(filename))
-                    os.unlink(filename)
+
+                    if not self._dry_run:
+                        os.unlink(filename)
+                    else:
+                        print('Would unlink {0}.'.format(filename))
 
             if not len(os.listdir(root)):
                 logging.debug('Removing directory "{0}".'.format(root))
-                os.rmdir(root)
+                if not self._dry_run:
+                    os.rmdir(root)
+                else:
+                    print('Would rmdir {0}.'.format(root))
         
     def positive_sync(self):
         """
@@ -59,13 +68,20 @@ class Synchronizer:
 
         logging.debug('Copying "{0}".'.format(relpath))
 
+        dir_name = os.path.split(dest)[0]
         try:
-            os.makedirs(os.path.split(dest)[0])
+            if not self._dry_run:
+                os.makedirs(dir_name)
+            else:
+                print('Would makedirs {0}.'.format(dir_name))
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
 
-        shutil.copyfile(source, dest)
+        if not self._dry_run:
+            shutil.copyfile(source, dest)
+        else:
+            print('Would copyfile {0} {1}.'.format(source, dest))
 
 
 def main():
@@ -78,6 +94,8 @@ def main():
         help='Playlist specifying which files from source should appear in dest.')
     parser.add_argument('--no-delete', action='store_true',
         help="Don't delete files that shouldn't be in the playlist.")
+    parser.add_argument('--dry-run', action='store_true',
+        help="Don't do any changes in the target directory.")
     parser.add_argument('--silent', action='store_const', const=logging.INFO,
         default=logging.DEBUG, help="Don't write too much.")
     args = parser.parse_args()
@@ -88,7 +106,7 @@ def main():
 
     playlist = (os.path.relpath(os.path.abspath(os.path.normpath(x.strip())), args.source) for x in args.playlist)
 
-    sync = Synchronizer(playlist, args.source, args.dest)
+    sync = Synchronizer(playlist, args.source, args.dest, dry_run = args.dry_run)
 
     if not args.no_delete:
         logging.info('Deleting unwanted files.')
