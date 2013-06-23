@@ -100,6 +100,12 @@ class Synchronizer:
             print('Would copyfile {0} {1}.'.format(source, dest))
 
 
+def prepare_path(path, origin):
+    if os.path.isabs(path):
+        return os.path.normpath(os.path.relpath(path, origin))
+    else:
+        return os.path.normpath(path)
+
 def main():
     parser = argparse.ArgumentParser(description='Synchronize a directory with a playlist.')
     parser.add_argument('--source', required=True,
@@ -122,7 +128,8 @@ def main():
 
     logging.info('Loading playlist.')
 
-    playlist = (os.path.relpath(os.path.abspath(os.path.normpath(x.strip())), args.source) for x in args.playlist)
+    playlist = (prepare_path(x.strip(), args.source) for x in args.playlist)
+    print(playlist)
 
     sync = Synchronizer(playlist, args.source, args.dest,
         dry_run = args.dry_run,
