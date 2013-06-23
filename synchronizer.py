@@ -39,7 +39,7 @@ class Synchronizer:
         for (root, dirs, files) in os.walk(self._dest, topdown=False, followlinks=True):
             for f in files:
                 filename = os.path.join(root, f)
-                
+
                 if filename not in self._paths:
                     logging.debug('Removing file "{0}".'.format(filename))
 
@@ -54,7 +54,7 @@ class Synchronizer:
                     os.rmdir(root)
                 else:
                     print('Would rmdir {0}.'.format(root))
-        
+
     def positive_sync(self):
         """
         Ensure that all files in the playlist are on the target path.
@@ -70,12 +70,12 @@ class Synchronizer:
         if not stat.S_ISREG(source_stat.st_mode):
             logging.warning('"{0}" is not a regular file.'.format(relpath))
             return
-            
+
         try:
             dest_stat = os.stat(dest)
         except OSError as e:
             dest_stat = False
-    
+
         if dest_stat and \
             dest_stat.st_size == source_stat.st_size and \
             dest_stat.st_mtime >= source_stat.st_mtime:
